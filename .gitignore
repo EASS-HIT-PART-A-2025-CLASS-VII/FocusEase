@@ -1,0 +1,33 @@
+# Docker related
+*.log
+*.db
+docker-compose.override.yml
+
+# Node Modules
+node_modules/
+
+# Python env files
+__pycache__/
+*.pyc
+
+# Database files and data
+*.sqlite
+*.sqlite3
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+
+# Flutter build files
+/build
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+pubspec.lock
+
+# Miscellaneous
+.env
+*.local

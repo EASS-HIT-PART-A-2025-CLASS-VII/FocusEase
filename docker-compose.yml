@@ -1,0 +1,31 @@
+services:
+  user-service:
+   image: node:20
+   container_name: user-service
+   working_dir: /app
+   ports:
+     - "3000:3000"
+   volumes:
+     - ./user-service:/app
+   command: sh -c "npm install && npm run start"
+
+
+  task-service:
+    image: python:3.11
+    container_name: task-service
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./task-service:/app
+    command: sh -c "pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 8000"
+
+  media-service:
+    image: python:3.11
+    container_name: media-service
+    working_dir: /app
+    ports:
+      - "8100:8100"
+    volumes:
+      - ./media-service:/app
+    command: sh -c "pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 8100"
