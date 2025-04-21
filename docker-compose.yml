@@ -1,14 +1,13 @@
 services:
   user-service:
-   image: node:20
-   container_name: user-service
-   working_dir: /app
-   ports:
-     - "3000:3000"
-   volumes:
-     - ./user-service:/app
-   command: sh -c "npm install && npm run start"
-
+    image: node:20
+    container_name: user-service
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./user-service:/app
+    command: sh -c "npm install && npm run start"
 
   task-service:
     image: python:3.11
@@ -29,3 +28,11 @@ services:
     volumes:
       - ./media-service:/app
     command: sh -c "pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 8100"
+
+  flutter-web:
+    build:
+      context: ./focusease
+      dockerfile: Dockerfile
+    container_name: flutter-web
+    ports:
+      - "8080:80"
