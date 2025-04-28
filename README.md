@@ -107,14 +107,3 @@ The app follows a **microservices architecture**:
 
 - Login, Registration, Tasks, Upload, Analytics, Spotify Connect, Dark Mode (see `/screenshots` folder)
 
----
-
-## 🙏 Credits
-Created with ❤️ for the Engineering of Advanced Software Solutions course (HIT).
-
----
-
-## 💬 Questions?
-Let me know! (Ready to continue immediately)
-
----
