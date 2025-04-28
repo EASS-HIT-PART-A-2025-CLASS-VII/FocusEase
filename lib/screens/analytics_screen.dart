@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
 
 class AnalyticsScreen extends StatelessWidget {
   final int totalTasks;
@@ -15,65 +14,73 @@ class AnalyticsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final incompleteTasks = totalTasks - completedTasks;
+    final completionRate = totalTasks == 0
+        ? 0
+        : (completedTasks / totalTasks * 100).toStringAsFixed(1);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Productivity Analytics')),
+      appBar: AppBar(
+        title: const Text('Daily Focus Summary 📊'),
+        centerTitle: true,
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(24.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Task Completion Rate',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
             const SizedBox(height: 20),
-            SizedBox(
-              height: 200,
-              child: PieChart(
-                PieChartData(
-                  sections: [
-                    PieChartSectionData(
-                      value: completedTasks.toDouble(),
-                      title: 'Completed ($completedTasks)',
-                      color: Colors.green,
-                      radius: 60,
-                    ),
-                    PieChartSectionData(
-                      value: incompleteTasks.toDouble(),
-                      title: 'Incomplete ($incompleteTasks)',
-                      color: Colors.redAccent,
-                      radius: 60,
-                    ),
-                  ],
-                ),
+            Text(
+              "📈 Your Productivity Stats",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
               ),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 20),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Text(
-                      '📌 Total Tasks: $totalTasks',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    Text(
-                      '✅ Completed: $completedTasks',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    Text(
-                      '🕒 Total Focus Time: $totalMinutes mins',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ],
-                ),
+            const SizedBox(height: 40),
+            _buildStatItem('Total Tasks', totalTasks.toString()),
+            const Divider(),
+            _buildStatItem('Completed Tasks', completedTasks.toString()),
+            const Divider(),
+            _buildStatItem('Completion Rate', '$completionRate%'),
+            const Divider(),
+            _buildStatItem('Total Focus Time', '$totalMinutes min'),
+            const Spacer(),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.arrow_back),
+              label: const Text('Back to Tasks'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 50),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 18),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueAccent,
+            ),
+          ),
+        ],
       ),
     );
   }
