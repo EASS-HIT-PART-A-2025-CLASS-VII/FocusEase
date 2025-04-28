@@ -6,8 +6,10 @@ import 'package:focusease/screens/analytics_screen.dart';
 
 class TasksScreen extends StatefulWidget {
   final String token;
+  final Future<void> Function() toggleTheme;
 
-  const TasksScreen({super.key, required this.token});
+  const TasksScreen(
+      {super.key, required this.token, required this.toggleTheme});
 
   @override
   State<TasksScreen> createState() => _TasksScreenState();
@@ -27,32 +29,40 @@ class _TasksScreenState extends State<TasksScreen> {
   Future<void> fetchTasks() async {
     final url = Uri.parse('http://localhost:8000/tasks');
 
-    final response = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer ${widget.token}',
-        'Content-Type': 'application/json',
-      },
-    );
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'Content-Type': 'application/json',
+        },
+      );
 
-    if (response.statusCode == 200) {
-      final fetchedTasks = jsonDecode(response.body);
-      setState(() {
-        tasks = sortTasksSmartly(fetchedTasks);
-        isLoading = false;
-      });
-    } else {
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final fetchedTasks = jsonDecode(response.body);
+        setState(() {
+          tasks = sortTasksSmartly(fetchedTasks);
+          isLoading = false;
+        });
+      } else {
+        setState(() => isLoading = false);
+        debugPrint('Failed to fetch tasks: ${response.body}');
+      }
+    } catch (e) {
+      if (!mounted) return;
       setState(() => isLoading = false);
-      print('Failed to fetch tasks: ${response.body}');
+      debugPrint('Error fetching tasks: $e');
     }
   }
 
   List<dynamic> sortTasksSmartly(List<dynamic> tasks) {
     tasks.sort((a, b) {
       DateTime? dueA =
-          a['due_date'] != null ? DateTime.parse(a['due_date']) : null;
+          a['due_date'] != null ? DateTime.tryParse(a['due_date']) : null;
       DateTime? dueB =
-          b['due_date'] != null ? DateTime.parse(b['due_date']) : null;
+          b['due_date'] != null ? DateTime.tryParse(b['due_date']) : null;
 
       if (dueA == null && dueB == null) {
         return a['duration'].compareTo(b['duration']);
@@ -84,7 +94,7 @@ class _TasksScreenState extends State<TasksScreen> {
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('jwt_token');
-    if (context.mounted) {
+    if (mounted) {
       Navigator.pushReplacementNamed(context, '/');
     }
   }
@@ -115,6 +125,11 @@ class _TasksScreenState extends State<TasksScreen> {
                 ),
               );
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.brightness_6),
+            onPressed: widget.toggleTheme,
+            tooltip: 'Toggle Theme',
           ),
           IconButton(
             icon: const Icon(Icons.logout),

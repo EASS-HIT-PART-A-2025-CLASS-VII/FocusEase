@@ -4,7 +4,9 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final Future<void> Function() toggleTheme;
+
+  const LoginScreen({super.key, required this.toggleTheme});
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -17,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String responseMessage = '';
 
   Future<void> login() async {
-    final url = Uri.parse('http://localhost:3000/login'); // ✅ user-service
+    final url = Uri.parse('http://localhost:3000/login');
     try {
       final response = await http.post(
         url,
@@ -30,30 +32,27 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final token = data['token'];
-
-        // ✅ Save the token locally
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('jwt_token', token);
+        await prefs.setString('jwt_token', data['token']);
 
         setState(() {
-          responseMessage = "Success! Token saved.";
+          responseMessage = "✅ Login successful!";
         });
 
-        // ✅ Navigate to tasks screen with token
+        if (!mounted) return;
         Navigator.pushReplacementNamed(
           context,
           '/tasks',
-          arguments: token,
+          arguments: data['token'],
         );
       } else {
         setState(() {
-          responseMessage = "Login failed: ${response.body}";
+          responseMessage = "❌ Login failed: ${response.body}";
         });
       }
     } catch (e) {
       setState(() {
-        responseMessage = "Error: $e";
+        responseMessage = "❌ Error: $e";
       });
     }
   }
@@ -61,7 +60,16 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(
+        title: const Text('Login'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.brightness_6),
+            onPressed: widget.toggleTheme,
+            tooltip: 'Toggle Theme',
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

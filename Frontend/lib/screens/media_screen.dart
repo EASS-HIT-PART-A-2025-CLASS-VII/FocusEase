@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
@@ -21,6 +22,8 @@ class _MediaScreenState extends State<MediaScreen> {
   Future<void> pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (!mounted) return;
 
     if (pickedFile != null) {
       setState(() {
@@ -44,26 +47,23 @@ class _MediaScreenState extends State<MediaScreen> {
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
 
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
         final json = jsonDecode(responseBody);
-        final taskTitle = json['title'];
-        final duration = json['duration'];
+        final taskTitle = json['task']['title'];
+        final duration = json['task']['duration'];
 
         setState(() {
           resultMessage = "✅ Task Created: $taskTitle ($duration mins)";
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("✅ Task '$taskTitle' created from image!"),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
-          ),
+          const SnackBar(content: Text("✅ Task created from image!")),
         );
 
-        // ✅ Navigate back to tasks screen after delay
-        Future.delayed(const Duration(seconds: 2), () {
-          if (context.mounted) {
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
             Navigator.pushReplacementNamed(
               context,
               '/tasks',
@@ -77,18 +77,23 @@ class _MediaScreenState extends State<MediaScreen> {
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         resultMessage = '❌ Error: $e';
       });
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Upload Screenshot')),
+      appBar: AppBar(
+        title: const Text('Upload Screenshot'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -97,30 +102,23 @@ class _MediaScreenState extends State<MediaScreen> {
               onPressed: pickImage,
               child: const Text('Pick Image'),
             ),
-            const SizedBox(height: 10),
-            if (imageFile != null)
-              Column(
-                children: [
-                  Image.file(imageFile!, height: 200),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: uploadImage,
-                    child: isLoading
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Upload Image'),
-                  ),
-                ],
+            if (imageFile != null) ...[
+              const SizedBox(height: 10),
+              Image.file(imageFile!, height: 200),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: uploadImage,
+                child: isLoading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Upload Image'),
               ),
+            ],
             const SizedBox(height: 20),
-            if (resultMessage.isNotEmpty)
-              Text(
-                resultMessage,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+            Text(resultMessage),
           ],
         ),
       ),

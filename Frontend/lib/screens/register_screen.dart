@@ -6,17 +6,16 @@ class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  RegisterScreenState createState() => RegisterScreenState();
+  _RegisterScreenState createState() => _RegisterScreenState();
 }
 
-class RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
   String responseMessage = '';
 
   Future<void> register() async {
-    final url = Uri.parse('http://localhost:3000/register'); // ✅ user-service
+    final url = Uri.parse('http://localhost:3000/register');
     try {
       final response = await http.post(
         url,
@@ -28,20 +27,19 @@ class RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          responseMessage = "Registered! Token: ${data['token']}";
-        });
-        // Navigate to tasks or login
-        Navigator.pushReplacementNamed(context, '/tasks');
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ Registration successful!')),
+        );
+        Navigator.pushReplacementNamed(context, '/');
       } else {
         setState(() {
-          responseMessage = "Registration failed: ${response.body}";
+          responseMessage = "❌ Registration failed: ${response.body}";
         });
       }
     } catch (e) {
       setState(() {
-        responseMessage = "Error: $e";
+        responseMessage = "❌ Error: $e";
       });
     }
   }
@@ -68,13 +66,6 @@ class RegisterScreenState extends State<RegisterScreen> {
             ElevatedButton(
               onPressed: register,
               child: const Text('Register'),
-            ),
-            const SizedBox(height: 20),
-            TextButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/');
-              },
-              child: const Text("Already have an account? Login"),
             ),
             const SizedBox(height: 20),
             Text(responseMessage),

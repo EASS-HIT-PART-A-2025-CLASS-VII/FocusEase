@@ -1,15 +1,20 @@
+version: '3.8'
+
 services:
+  # 🧩 User Service
   user-service:
-   image: node:20
-   container_name: user-service
-   working_dir: /app
-   ports:
-     - "3000:3000"
-   volumes:
-     - ./user-service:/app
-   command: sh -c "npm install && npm run start"
+    image: node:20
+    container_name: user-service
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./user-service:/app
+    command: sh ./wait-for-mongo.sh && sh -c "npm install && npm run start"
+    depends_on:
+      - mongo-db
 
-
+  # 🧩 Task Service
   task-service:
     image: python:3.11
     container_name: task-service
@@ -19,7 +24,10 @@ services:
     volumes:
       - ./task-service:/app
     command: sh -c "pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 8000"
+    depends_on:
+      - task-db
 
+  # 🧩 Media Service
   media-service:
     image: python:3.11
     container_name: media-service
@@ -29,3 +37,23 @@ services:
     volumes:
       - ./media-service:/app
     command: sh -c "pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 8100"
+    depends_on:
+      - task-service
+
+  # 🧩 MongoDB for user-service
+  mongo-db:
+    image: mongo:latest
+    container_name: mongo-db
+    ports:
+      - "27017:27017"
+
+  # 🧩 Postgres for task-service
+  task-db:
+    image: postgres:latest
+    container_name: task-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: tasks
+    ports:
+      - "5432:5432"
